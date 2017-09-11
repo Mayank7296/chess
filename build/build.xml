@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+
+<project name="java_chess_web" basedir="." default="deploywar">
+	
+	<!-- Properties file that defines settings for deployment to a local Tomcat server -->
+    <property file="build.properties"/>
+
+	<property name="dist.dir" value="dist"/>
+	<property name="war.name" value="games"/>
+	
+	<target name="clean" description="clean output directories">
+		<delete dir="${dist.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+	</target>
+		
+	<target name="build" depends="clean" description="Build and package all projects">
+		<!-- build chess logic JAR -->
+		<ant dir="../src_chess" antfile="build.xml" inheritall="false" target="package" />
+		<!-- copy chess logic JAR to webapp project -->
+		<copy file="../src_chess/dist/src_chess.jar" todir="../web_games/war/WEB-INF/lib" />
+		<!-- build chess webapp WAR -->
+		<ant dir="../web_games" antfile="build.xml" inheritall="false" target="package" />
+		<!-- copy chess webapp WAR to build project dist directory -->
+		<copy file="../web_games/dist/${war.name}.war" todir="dist" />
+	</target>
+	
+    <target name="deploywar" depends="undeploy, build" description="Build WAR file and deploy to Tomcat server">
+    	<copy todir="${deploy.path}" preservelastmodified="true">
+            <fileset dir="${dist.dir}">
+                <include name="${war.name}.war"/>
+            </fileset>
+        </copy>
+    </target>
+
+	<!-- ============================================================== -->
+	<!-- Tomcat tasks server management tasks                           -->
+	<!-- ============================================================== -->
+    <taskdef name="install" classname="org.apache.catalina.ant.InstallTask">
+        <classpath>
+            <path location="${appserver.home}/lib/catalina-ant.jar"/>
+        </classpath>
+    </taskdef>
+    <taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask">
+        <classpath>
+            <path location="${appserver.home}/lib/catalina-ant.jar"/>
+        </classpath>
+    </taskdef>
+    <taskdef name="list" classname="org.apache.catalina.ant.ListTask">
+        <classpath>
+            <path location="${appserver.home}/lib/catalina-ant.jar"/>
+        </classpath>
+    </taskdef>
+    <taskdef name="start" classname="org.apache.catalina.ant.StartTask">
+        <classpath>
+            <path location="${appserver.home}/lib/catalina-ant.jar"/>
+        </classpath>
+    </taskdef>
+    <taskdef name="stop" classname="org.apache.catalina.ant.StopTask">
+        <classpath>
+            <path location="${appserver.home}/lib/catalina-ant.jar"/>
+        </classpath>
+    </taskdef>
+
+    <target name="install" description="Install application in Tomcat">
+        <install url="${tomcat.manager.url}"
+                 username="${tomcat.manager.username}"
+                 password="${tomcat.manager.password}"
+                 path="/${war.name}"
+                 war="${war.name}"/>
+    </target>
+
+    <target name="reload" description="Reload application in Tomcat">
+        <reload url="${tomcat.manager.url}"
+                 username="${tomcat.manager.username}"
+                 password="${tomcat.manager.password}"
+                 path="/${war.name}"/>
+    </target>
+
+    <target name="start" description="Start Tomcat application">
+        <start url="${tomcat.manager.url}"
+                 username="${tomcat.manager.username}"
+                 password="${tomcat.manager.password}"
+                 path="/${war.name}"/>
+    </target>
+
+    <target name="stop" description="Stop Tomcat application">
+        <stop url="${tomcat.manager.url}"
+                 username="${tomcat.manager.username}"
+                 password="${tomcat.manager.password}"
+                 path="/${war.name}"/>
+    </target>
+
+    <target name="list" description="List Tomcat applications">
+        <list url="${tomcat.manager.url}"
+                 username="${tomcat.manager.username}"
+                 password="${tomcat.manager.password}"/>
+    </target>
+	
+    <target name="undeploy" description="Un-Deploy application">
+        <delete dir="${deploy.path}/${war.name}"/>
+    </target>	
+
+</project>
