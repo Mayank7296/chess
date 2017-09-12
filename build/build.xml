@@ -1,3 +1,4 @@
+HelloWorld
 <?xml version="1.0"?>
 
 <project name="java_chess_web" basedir="." default="deploywar">
